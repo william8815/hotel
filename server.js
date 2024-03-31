@@ -22,6 +22,10 @@ mongoose
 const Room = require("./models/room");
 // step3 : 實作 CRUD 功能
 let server = http.createServer(async (req, res) => {
+  let body = "";
+  req.on("data", (chunk) => {
+    body += chunk;
+  });
   const headers = {
     "Access-Control-Allow-Headers":
       "Content-Type, Authorization, Content-Length, X-Requested-With",
@@ -40,14 +44,7 @@ let server = http.createServer(async (req, res) => {
       })
     );
     res.end();
-  }
-  // 新增資料
-  // req.body 資料
-  let body = "";
-  req.on("data", (chunk) => {
-    body += chunk;
-  });
-  if (req.url == "/rooms" && req.method == "POST") {
+  } else if (req.url == "/rooms" && req.method == "POST") {
     req.on("end", async () => {
       try {
         const data = JSON.parse(body);
@@ -77,9 +74,7 @@ let server = http.createServer(async (req, res) => {
         res.end();
       }
     });
-  }
-  // 刪除全部資料
-  if (req.url == "/rooms" && req.method == "DELETE") {
+  } else if (req.url == "/rooms" && req.method == "DELETE") {
     const rooms = await Room.deleteMany({});
     res.writeHead(200, headers);
     res.write(
@@ -89,9 +84,7 @@ let server = http.createServer(async (req, res) => {
       })
     );
     res.end();
-  }
-  // 刪除單筆資料
-  if (req.url.startsWith("/rooms/") && req.method == "DELETE") {
+  } else if (req.url.startsWith("/rooms/") && req.method == "DELETE") {
     try {
       let id = req.url.split("/").pop(); // 抓取 id
       const rooms = await Room.findByIdAndDelete(id);
@@ -114,9 +107,7 @@ let server = http.createServer(async (req, res) => {
       );
       res.end();
     }
-  }
-  // 更新單筆資料
-  if (req.url.startsWith("/rooms/") && req.method == "PATCH") {
+  } else if (req.url.startsWith("/rooms/") && req.method == "PATCH") {
     try {
       req.on("end", async () => {
         let id = req.url.split("/").pop(); // 抓取 id
@@ -145,25 +136,21 @@ let server = http.createServer(async (req, res) => {
       );
       res.end();
     }
+  } else if (req.method == "OPTIONS") {
+    res.writeHead(200, headers);
+    res.end();
+  } else {
+    res.writeHead(404, {
+      "Content-Type": "text/plain",
+    });
+    res.write(
+      JSON.stringify({
+        status: "false",
+        message: "404 not found page!!!",
+      })
+    );
+    res.end();
   }
-
-  // if (req.method == "OPTIONS") {
-  //   // 因為 preflight api 檢查機制，所以需特別設定
-  //   // preflight 主要針對請求不同網域的 api，會先以 OPTIONS 請求進行檢查，許可同意後才會 執行原本的方法進行請求
-  //   res.writeHead(200, headers);
-  //   res.end();
-  // } else {
-  //   res.writeHead(404, {
-  //     "Content-Type": "text/plain",
-  //   });
-  //   res.write(
-  //     JSON.stringify({
-  //       status: "false",
-  //       message: "404 not found page!!!",
-  //     })
-  //   );
-  //   res.end();
-  // }
 });
 
 server.listen(process.env.PORT);
