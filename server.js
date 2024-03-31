@@ -6,9 +6,7 @@ dotenv.config();
 // step1 : 連線 對應資料庫
 // 遠端資料庫
 let uri = process.env.DATABASE;
-uri = uri.replace("<username>", process.env.DATABASE_USERNAME);
 uri = uri.replace("<password>", process.env.DATABASE_PASSWORD);
-uri = uri.replace("<model>", process.env.DATABASE_MODEL);
 
 mongoose
   .connect(uri)
